@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solitaire Game WebSocket</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>Solitaire Game State</h1>
+<button onclick="connect()">Connect</button>
+<button onclick="sendRequest()">Request Initial Game State</button>
+<div id="gameState"></div>
+
+<script>
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('http://localhost:8081/ws');  // Connect to the /ws endpoint
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+
+            // Subscribe to /topic/gameState
+            stompClient.subscribe('/topic/gameState', function (gameState) {
+                showGameState(gameState.body);
+            });
+        });
+    }
+
+    function sendRequest() {
+        // Send a request to /app/getInitialGameState
+        stompClient.send("/app/getInitialGameState", {}, {});
+    }
+
+    function showGameState(message) {
+        document.getElementById("gameState").innerHTML = "<p>Game State: " + message + "</p>";
+    }
+</script>
+</body>
+</html>
